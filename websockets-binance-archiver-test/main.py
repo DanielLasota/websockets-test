@@ -18,29 +18,27 @@ BINANCE_FUTURES_DEPTH_URL = (
     "suiusdt@depth@100ms"
 )
 
+
 async def listen_depth_stream():
-    """
-    Łączy się z WebSocketem Binance Futures,
-    w pętli odbiera wiadomości i nadpisuje je na tym samym wierszu.
-    Gdy wystąpi błąd, wyświetla go i kończy program.
-    """
-    print("Łączenie z Binance Futures WebSocket...")
-    async with websockets.connect(BINANCE_FUTURES_DEPTH_URL) as websocket:
-        print("Połączono z Binance Futures WebSocket.")
+
+    while True:
         try:
-            while True:
-                # Odbiór wiadomości z WebSocket
-                message = await websocket.recv()
-                # Nadpisanie poprzedniej wiadomości na konsoli:
-                # print(f"\r{message}", end="", flush=True)
+            async with websockets.connect(BINANCE_FUTURES_DEPTH_URL) as websocket:
+                print("Połączono z Binance Futures WebSocket.")
+                while True:
+                    message = await websocket.recv()
+                    print(f"\r{message}", end="", flush=True)
+
+        except websockets.ConnectionClosed as e:
+            print(f"Rozłączono. Próba ponownego połączenia za 5 sekund... (Powód: {e})")
+            await asyncio.sleep(5)
+
         except Exception as e:
-            print(f"\nWystąpił błąd: {e}")
-            # Po wystąpieniu wyjątku wychodzimy z funkcji, co kończy program
-            return
+            print(f"Wystąpił błąd: {e}. Ponowne łączenie za 5 sekund...")
+            await asyncio.sleep(5)
 
 async def main():
     await listen_depth_stream()
 
-if __name__ == "__main__":
-    # Uruchomienie asynchroniczne w zwykłym środowisku Python
-    asyncio.run(main())
+loop = asyncio.get_event_loop()
+loop.run_until_complete(main())
