@@ -18,27 +18,20 @@ BINANCE_FUTURES_DEPTH_URL = (
     "suiusdt@depth@100ms"
 )
 
-
 async def listen_depth_stream():
-
-    while True:
+    print("Łączenie z Binance Futures WebSocket...")
+    async with websockets.connect(BINANCE_FUTURES_DEPTH_URL) as websocket:
+        print("Połączono z Binance Futures WebSocket.")
         try:
-            async with websockets.connect(BINANCE_FUTURES_DEPTH_URL) as websocket:
-                print("Połączono z Binance Futures WebSocket.")
-                while True:
-                    message = await websocket.recv()
-                    print(f"\r{message}", end="", flush=True)
-
-        except websockets.ConnectionClosed as e:
-            print(f"Rozłączono. Próba ponownego połączenia za 5 sekund... (Powód: {e})")
-            await asyncio.sleep(5)
-
+            while True:
+                message = await websocket.recv()
+                print(f"\r{message}", end="", flush=True)
         except Exception as e:
-            print(f"Wystąpił błąd: {e}. Ponowne łączenie za 5 sekund...")
-            await asyncio.sleep(5)
+            print(f"\nWystąpił błąd: {e}")
+            return
 
 async def main():
     await listen_depth_stream()
 
-loop = asyncio.get_event_loop()
-loop.run_until_complete(main())
+if __name__ == "__main__":
+    asyncio.run(main())
